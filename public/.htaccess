@@ -1,0 +1,46 @@
+# --------------------------------------------------------------------
+# Sherwood Events — Apache config for IONOS
+# --------------------------------------------------------------------
+
+Options -Indexes
+ServerSignature Off
+
+# Redirect /events.ics and /events.rss to their .php handlers
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Trailing-slash-free short URLs
+    RewriteRule ^events\.ics$   events.ics.php   [L]
+    RewriteRule ^events\.rss$   events.rss.php   [L]
+    RewriteRule ^sitemap\.xml$  sitemap.xml.php  [L]
+</IfModule>
+
+# --------------------------------------------------------------------
+# Cache headers for static assets
+# --------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css              "access plus 7 days"
+    ExpiresByType application/javascript "access plus 7 days"
+    ExpiresByType image/jpeg            "access plus 30 days"
+    ExpiresByType image/png             "access plus 30 days"
+    ExpiresByType image/webp            "access plus 30 days"
+    ExpiresByType image/x-icon          "access plus 30 days"
+</IfModule>
+
+# --------------------------------------------------------------------
+# Sensible security headers
+# --------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "geolocation=(), camera=(), microphone=()"
+</IfModule>
+
+# --------------------------------------------------------------------
+# Deny direct browsing of sensitive files
+# --------------------------------------------------------------------
+<FilesMatch "\.(sql|log|md|example\.php)$">
+    Require all denied
+</FilesMatch>

@@ -1,0 +1,24 @@
+# Secrets / env
+config/config.php
+
+# Uploaded images (runtime content, not source)
+public/uploads/*
+!public/uploads/.gitkeep
+!public/uploads/.htaccess
+
+# Logs
+*.log
+
+# OS / editor / tool cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+.claude/
+*.swp
+*.bak
+
+# PHP
+vendor/
+composer.lock

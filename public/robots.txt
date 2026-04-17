@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /uploads/.htaccess
+
+Sitemap: https://events.sherwoodadventure.com/sitemap.xml
