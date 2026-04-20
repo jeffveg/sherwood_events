@@ -1,0 +1,4 @@
+# Shell scripts must use LF to run on the Linux IONOS server.
+*.sh           text eol=lf
+# Let the rest auto-detect (default Git behavior).
+* text=auto

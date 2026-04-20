@@ -1,0 +1,33 @@
+name: Deploy to IONOS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # allow manual runs from the Actions tab
+
+# Only one deploy at a time; if a newer push lands while we're running,
+# cancel the older run.
+concurrency:
+  group: deploy-ionos
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: SSH into IONOS and run deploy.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run remote deploy script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.IONOS_SSH_HOST }}
+          username: ${{ secrets.IONOS_SSH_USER }}
+          port:     ${{ secrets.IONOS_SSH_PORT || 22 }}
+          key:      ${{ secrets.IONOS_SSH_KEY }}
+          script_stop: true
+          # SHERWOOD_EVENTS_DIR lets the script find the right folder
+          # without editing deploy.sh for every environment.
+          envs: SHERWOOD_EVENTS_DIR
+          script: |
+            bash "$SHERWOOD_EVENTS_DIR/deploy.sh"
+        env:
+          SHERWOOD_EVENTS_DIR: ${{ secrets.IONOS_SITE_DIR }}

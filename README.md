@@ -50,7 +50,8 @@ Replaces the `tockify.com` embed previously used on the main site.
 
 ## Deployment
 
-See [DEPLOY.md](DEPLOY.md).
+- **First-time setup on IONOS:** see [DEPLOY.md](DEPLOY.md)
+- **Auto-deploy on every push to `main`:** see [AUTO_DEPLOY.md](AUTO_DEPLOY.md)
 
 ## Project layout
 
