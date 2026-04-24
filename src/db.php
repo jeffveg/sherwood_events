@@ -24,8 +24,19 @@ function db(): PDO
         PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
 
-    // Match application timezone so DATETIME comparisons line up.
-    $pdo->exec("SET time_zone = '+00:00'");
+    // ── Timezone ──────────────────────────────────────────────────────────
+    // Sherwood Adventure only operates in Arizona, which sits on MST
+    // year-round (no DST). So we pin the MySQL connection to a fixed
+    // -07:00 offset. Admin forms submit Phoenix-local datetimes, PHP
+    // formats them back in Phoenix, and NOW() in SQL now matches — so
+    // "upcoming" / "past" comparisons are correct.
+    //
+    // NICE TO KNOW: If Sherwood ever operates outside Arizona (or Arizona
+    // ever adopts DST — unlikely), this needs to change to 'America/Phoenix'
+    // (requires the mysql.time_zone_tables to be loaded on the server) or
+    // the app needs to store UTC and convert at the edges.
+    // ──────────────────────────────────────────────────────────────────────
+    $pdo->exec("SET time_zone = '-07:00'");
 
     return $pdo;
 }

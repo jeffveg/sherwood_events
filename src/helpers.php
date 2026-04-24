@@ -154,3 +154,59 @@ function short_desc(string $html, int $max = 220): string
     }
     return rtrim(mb_substr($plain, 0, $max)) . '…';
 }
+
+// -----------------------------------------------------------------------------
+// Return a string only if it's a valid CSS hex color; otherwise empty string.
+// Used when inlining tag colors into style="…" attributes so that even a
+// malicious value in the DB can't break out of the declaration.
+// -----------------------------------------------------------------------------
+function safe_css_color(?string $c): string
+{
+    if ($c === null || $c === '') return '';
+    $c = trim($c);
+    return preg_match('/^#[0-9a-f]{3,8}$/i', $c) ? $c : '';
+}
+
+// -----------------------------------------------------------------------------
+// Neutralize CSV-injection payloads. Excel will execute a cell that starts
+// with =, +, -, @, tab, or CR, treating it as a formula. Prefix such values
+// with a single quote so Excel displays them as plain text.
+// -----------------------------------------------------------------------------
+function csv_safe($v): string
+{
+    $s = (string)$v;
+    if ($s === '') return $s;
+    $first = $s[0];
+    if ($first === '=' || $first === '+' || $first === '-' || $first === '@'
+        || $first === "\t" || $first === "\r") {
+        return "'" . $s;
+    }
+    return $s;
+}
+
+// -----------------------------------------------------------------------------
+// RFC 5545 line folding for iCalendar. Content lines SHOULD NOT exceed 75
+// octets; longer lines are split with CRLF + single space at the start of
+// each continuation. UTF-8 safe: never splits mid-character.
+// -----------------------------------------------------------------------------
+function ical_fold(string $line): string
+{
+    if (strlen($line) <= 75) return $line;
+
+    $out   = '';
+    $pos   = 0;
+    $len   = strlen($line);
+    $limit = 75;                                 // first chunk: 75 octets
+    while ($pos < $len) {
+        $take = min($limit, $len - $pos);
+        // Back up if we'd split in the middle of a UTF-8 multi-byte sequence.
+        while ($take > 0 && $pos + $take < $len
+               && (ord($line[$pos + $take]) & 0xC0) === 0x80) {
+            $take--;
+        }
+        $out  .= ($pos === 0 ? '' : "\r\n ") . substr($line, $pos, $take);
+        $pos  += $take;
+        $limit = 74;                             // continuation lines: 74 + leading space = 75
+    }
+    return $out;
+}

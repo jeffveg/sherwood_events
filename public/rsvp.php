@@ -38,6 +38,14 @@ if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     redirect('/event.php?slug=' . urlencode($event['slug']) . '#rsvp');
 }
 
+// Friendly duplicate check — if this email is already on the list for this
+// event, skip the insert and show a "you're already in" message.
+$dup = db()->prepare("SELECT id FROM rsvps WHERE event_id = :e AND email = :em LIMIT 1");
+$dup->execute(['e' => (int)$event['id'], 'em' => $email]);
+if ($dup->fetch()) {
+    redirect('/event.php?slug=' . urlencode($event['slug']) . '&already=1#rsvp');
+}
+
 // Capacity check (per attendee, not per RSVP)
 if ($event['rsvp_capacity'] !== null) {
     $taken = rsvp_attendee_count((int)$event['id']);

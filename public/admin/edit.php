@@ -52,28 +52,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $slugBase = $slug !== '' ? slugify($slug) : slugify($title);
     $slugFinal = slug_unique($slugBase, $isNew ? null : $id);
 
-    // Image handling — upload OR URL (upload takes precedence)
-    $imagePathDb = $event['image_path'] ?? null;
-    if (!empty($_FILES['image_file']) && is_uploaded_file($_FILES['image_file']['tmp_name'] ?? '')) {
-        $err = $_FILES['image_file']['error'];
-        if ($err === UPLOAD_ERR_OK) {
-            $saved = handle_image_upload($_FILES['image_file']);
-            if ($saved instanceof Throwable) {
-                $errors[] = $saved->getMessage();
-            } else {
-                $imagePathDb = $saved;
-            }
-        } elseif ($err !== UPLOAD_ERR_NO_FILE) {
-            $errors[] = 'Image upload failed (code ' . (int)$err . ').';
-        }
-    } elseif ($imageUrl !== '') {
-        if (!preg_match('#^https?://#i', $imageUrl)) {
-            $errors[] = 'Image URL must start with http:// or https://';
+    // Image handling — upload OR URL (upload takes precedence). Check the
+    // $_FILES error code BEFORE is_uploaded_file: when a file exceeds
+    // upload_max_filesize, tmp_name is empty and is_uploaded_file returns
+    // false, so checking it first would swallow the "too big" error.
+    $imagePathDb   = $event['image_path'] ?? null;
+    $uploadHandled = false;
+    $upErr         = $_FILES['image_file']['error'] ?? UPLOAD_ERR_NO_FILE;
+
+    if ($upErr === UPLOAD_ERR_OK
+        && is_uploaded_file($_FILES['image_file']['tmp_name'] ?? '')) {
+        $saved = handle_image_upload($_FILES['image_file']);
+        if ($saved instanceof Throwable) {
+            $errors[] = $saved->getMessage();
         } else {
-            $imagePathDb = $imageUrl;
+            $imagePathDb   = $saved;
+            $uploadHandled = true;
         }
-    } elseif (!empty($_POST['clear_image'])) {
-        $imagePathDb = null;
+    } elseif ($upErr === UPLOAD_ERR_INI_SIZE || $upErr === UPLOAD_ERR_FORM_SIZE) {
+        $errors[] = 'That image is too large. Please pick a file under '
+                  . (UPLOAD_MAX_BYTES / 1024 / 1024) . ' MB.';
+    } elseif ($upErr === UPLOAD_ERR_PARTIAL) {
+        $errors[] = 'The image upload was interrupted. Please try again.';
+    } elseif ($upErr === UPLOAD_ERR_NO_TMP_DIR || $upErr === UPLOAD_ERR_CANT_WRITE) {
+        $errors[] = 'Server could not save the upload (permissions issue). Contact the webmaster.';
+    } elseif ($upErr !== UPLOAD_ERR_NO_FILE) {
+        $errors[] = 'Image upload failed (PHP code ' . (int)$upErr . ').';
+    }
+
+    // Fall through to URL / clear only if no upload happened.
+    if (!$uploadHandled && $upErr === UPLOAD_ERR_NO_FILE) {
+        if ($imageUrl !== '') {
+            if (!preg_match('#^https?://#i', $imageUrl)) {
+                $errors[] = 'Image URL must start with http:// or https://';
+            } else {
+                $imagePathDb = $imageUrl;
+            }
+        } elseif (!empty($_POST['clear_image'])) {
+            $imagePathDb = null;
+        }
     }
 
     if (!$errors) {
@@ -125,6 +142,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
  */
 function handle_image_upload(array $file)
 {
+    // GD is required for the re-encode / resize step. If the PHP build on the
+    // server doesn't have it, uploads aren't available — but pasting an image
+    // URL still works, so we degrade gracefully with a clear message.
+    if (!function_exists('imagecreatefromjpeg')) {
+        return new RuntimeException(
+            'This server does not have the GD image library enabled, so uploads '
+            . 'are disabled. Please paste an image URL instead, or ask the host '
+            . 'to enable the PHP GD extension.'
+        );
+    }
     try {
         if ($file['size'] > UPLOAD_MAX_BYTES) {
             throw new RuntimeException('Image too large (max ' . (UPLOAD_MAX_BYTES / 1024 / 1024) . ' MB).');
@@ -196,6 +223,8 @@ $dt_local = function($v) {
 <main class="content-body admin-page admin-edit" id="main-content">
   <p><a href="/admin/">&larr; Back to events</a></p>
   <h1><?= $isNew ? 'New Event' : 'Edit Event' ?></h1>
+
+  <?php include __DIR__ . '/../_partials/flashes.php'; ?>
 
   <?php if ($errors): ?>
     <div class="flash flash-error">

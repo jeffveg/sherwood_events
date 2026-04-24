@@ -20,11 +20,17 @@ if (($_GET['format'] ?? '') === 'csv') {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="rsvps-' . $event['slug'] . '.csv"');
     $out = fopen('php://output', 'w');
+    // BOM so Excel opens UTF-8 cleanly
+    fwrite($out, "\xEF\xBB\xBF");
     fputcsv($out, ['Name','Email','Phone','Party size','Notes','Submitted']);
     foreach ($rsvps as $r) {
         fputcsv($out, [
-            $r['name'], $r['email'], $r['phone'], $r['party_size'],
-            $r['notes'], $r['created_at'],
+            csv_safe($r['name']),
+            csv_safe($r['email']),
+            csv_safe($r['phone']),
+            (int)$r['party_size'],
+            csv_safe($r['notes']),
+            $r['created_at'],
         ]);
     }
     fclose($out);

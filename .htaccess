@@ -1,0 +1,25 @@
+# =========================================================
+# Sherwood Events — root-level .htaccess (defense in depth)
+#
+# This file is ONLY consulted if the webserver's document root is pointing
+# at the REPOSITORY root instead of at ./public/. In that case it keeps
+# source files, config, docs, SQL, the deploy script, and .git metadata
+# from being publicly fetchable.
+#
+# If the document root is correctly set to ./public/ (preferred), Apache
+# never reads this file and it is harmless.
+# =========================================================
+
+Options -Indexes
+ServerSignature Off
+
+# Block git metadata outright (includes .git/config which holds the remote URL)
+RedirectMatch 404 /\.git(/|$)
+
+# Block every non-public top-level directory
+RedirectMatch 404 ^/(src|config|sql|scripts|\.github)(/|$)
+
+# Block sensitive top-level files
+<FilesMatch "^(README\.md|DEPLOY\.md|AUTO_DEPLOY\.md|deploy\.sh|\.gitignore|\.gitattributes|\.env|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>

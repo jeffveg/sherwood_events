@@ -6,7 +6,6 @@ require_once __DIR__ . '/../../src/events.php';
 auth_require();
 
 $events = events_admin_all();
-$flash  = flash_pop();
 
 $pageTitle = 'Admin | Sherwood Events';
 include __DIR__ . '/../_partials/head.php';
@@ -22,9 +21,7 @@ include __DIR__ . '/../_partials/nav.php';
     </div>
   </div>
 
-  <?php if ($flash): ?>
-    <div class="flash flash-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>
-  <?php endif; ?>
+  <?php include __DIR__ . '/../_partials/flashes.php'; ?>
 
   <table class="admin-table">
     <thead>
@@ -44,7 +41,7 @@ include __DIR__ . '/../_partials/nav.php';
           <td><span class="status-pill"><?= e($ev['status']) ?></span></td>
           <td><?= $ev['featured'] ? '★' : '' ?></td>
           <td>
-            <?php if ($ev['rsvp_enabled']): ?>
+            <?php if ($ev['rsvp_enabled'] || (int)$ev['rsvp_count'] > 0): ?>
               <a href="/admin/rsvps.php?event=<?= (int)$ev['id'] ?>"><?= (int)$ev['rsvp_count'] ?></a>
             <?php else: ?>
               —

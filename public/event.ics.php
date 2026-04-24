@@ -46,4 +46,5 @@ $out = [
     "END:VCALENDAR",
 ];
 
-echo implode("\r\n", array_filter($out));
+// RFC 5545: fold any content line longer than 75 octets.
+echo implode("\r\n", array_map('ical_fold', array_filter($out)));

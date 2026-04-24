@@ -31,10 +31,10 @@ include __DIR__ . '/_partials/head.php';
   <?php if ($allTags): ?>
     <nav class="tag-filter" aria-label="Filter events by category">
       <a href="/" class="tag-pill <?= $activeTag ? '' : 'is-active' ?>">All</a>
-      <?php foreach ($allTags as $t): ?>
+      <?php foreach ($allTags as $t): $tc = safe_css_color($t['color']); ?>
         <a href="/?tag=<?= e($t['slug']) ?>"
            class="tag-pill <?= ($activeTag && $activeTag['id']==$t['id']) ? 'is-active' : '' ?>"
-           <?= $t['color'] ? 'style="--tag-color: '.e($t['color']).'"' : '' ?>>
+           <?= $tc ? 'style="--tag-color: '.e($tc).'"' : '' ?>>
           <?= e($t['name']) ?>
         </a>
       <?php endforeach; ?>
@@ -57,6 +57,7 @@ include __DIR__ . '/_partials/head.php';
 
     <?php
       $lastMonth = null;
+      $featuredHeaderShown = false;
       $nonFeaturedShown = 0;
       foreach ($events as $ev):
         $month = fmt_month_key($ev['start_datetime']);
@@ -65,8 +66,12 @@ include __DIR__ . '/_partials/head.php';
         if ($showMonthHeader) {
             $lastMonth = $month;
         }
+        $showFeaturedHeader = $ev['featured'] && !$featuredHeaderShown;
+        if ($showFeaturedHeader) {
+            $featuredHeaderShown = true;
+        }
     ?>
-      <?php if ($ev['featured']): ?>
+      <?php if ($showFeaturedHeader): ?>
         <div class="month-header featured-header">Featured</div>
       <?php elseif ($showMonthHeader): ?>
         <div class="month-header"><?= e($monthLabel) ?></div>
@@ -82,8 +87,8 @@ include __DIR__ . '/_partials/head.php';
           <?php $tags = $tagsByEv[$ev['id']] ?? []; ?>
           <?php if ($tags): ?>
             <div class="event-tags">
-              <?php foreach ($tags as $t): ?>
-                <span class="tag-pill tag-pill--sm" <?= $t['color'] ? 'style="--tag-color: '.e($t['color']).'"' : '' ?>>
+              <?php foreach ($tags as $t): $tc = safe_css_color($t['color']); ?>
+                <span class="tag-pill tag-pill--sm" <?= $tc ? 'style="--tag-color: '.e($tc).'"' : '' ?>>
                   <?= e($t['name']) ?>
                 </span>
               <?php endforeach; ?>

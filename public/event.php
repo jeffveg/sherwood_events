@@ -89,6 +89,8 @@ include __DIR__ . '/_partials/head.php';
 
 <main class="content-body event-detail" id="main-content">
 
+  <?php include __DIR__ . '/_partials/flashes.php'; ?>
+
   <?php if ($event['status'] === 'cancelled'): ?>
     <div class="event-cancelled-banner"><strong>This event has been cancelled.</strong></div>
   <?php endif; ?>
@@ -101,8 +103,8 @@ include __DIR__ . '/_partials/head.php';
     <div class="event-detail-body">
       <?php if ($tags): ?>
         <div class="event-tags">
-          <?php foreach ($tags as $t): ?>
-            <span class="tag-pill tag-pill--sm" <?= $t['color'] ? 'style="--tag-color: '.e($t['color']).'"' : '' ?>>
+          <?php foreach ($tags as $t): $tc = safe_css_color($t['color']); ?>
+            <span class="tag-pill tag-pill--sm" <?= $tc ? 'style="--tag-color: '.e($tc).'"' : '' ?>>
               <?= e($t['name']) ?>
             </span>
           <?php endforeach; ?>
@@ -141,7 +143,7 @@ include __DIR__ . '/_partials/head.php';
         <span class="share-row-label">Share:</span>
         <a href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode($shareUrl) ?>" target="_blank" rel="noopener">Facebook</a>
         <a href="https://twitter.com/intent/tweet?url=<?= urlencode($shareUrl) ?>&text=<?= urlencode($event['title']) ?>" target="_blank" rel="noopener">X</a>
-        <a href="sms:?&body=<?= urlencode($event['title'] . ' — ' . $shareUrl) ?>">SMS</a>
+        <a href="sms:?body=<?= rawurlencode($event['title'] . ' — ' . $shareUrl) ?>">SMS</a>
         <a href="mailto:?subject=<?= urlencode($event['title']) ?>&body=<?= urlencode($event['title'] . "\n\n" . $shareUrl) ?>">Email</a>
       </div>
     </div>
@@ -163,6 +165,8 @@ include __DIR__ . '/_partials/head.php';
 
       <?php if (!empty($_GET['rsvped'])): ?>
         <div class="rsvp-success">Thanks! We've got you down. See you there.</div>
+      <?php elseif (!empty($_GET['already'])): ?>
+        <div class="rsvp-success">Looks like you're already on the list for this event. See you there!</div>
       <?php elseif ($full): ?>
         <p><strong>This event is full.</strong> Check back — spots sometimes open up.</p>
       <?php else: ?>
