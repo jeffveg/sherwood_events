@@ -14,8 +14,10 @@
 
 set -euo pipefail
 
-# ─── EDIT THIS ONCE WHEN YOU FIRST CLONE THE REPO ──────────
-SITE_DIR="${SHERWOOD_EVENTS_DIR:-/kunden/homepages/40/d493077416/htdocs/sherwood_events}"
+# ─── Path resolution ───────────────────────────────────────
+# Honors SHERWOOD_EVENTS_DIR if set (the GitHub Action sets it from a
+# repo secret); otherwise falls back to the production IONOS path.
+SITE_DIR="${SHERWOOD_EVENTS_DIR:-/kunden/homepages/40/d493077416/htdocs/events}"
 # ───────────────────────────────────────────────────────────
 
 echo ""
