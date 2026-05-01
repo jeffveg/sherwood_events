@@ -20,8 +20,14 @@
 .content-body h1 { font-size: 2.2rem; }
 .content-body h2 { font-size: 1.55rem; margin-top: 1.8rem; }
 .content-body p  { margin-bottom: 1rem; }
-.content-body a  { color: var(--sw-gold); text-decoration: underline; text-decoration-color: rgba(254,214,17,0.4); }
-.content-body a:hover { color: var(--sw-orange); }
+/* Inline content links — gold underlined, hover to orange.
+   Excludes buttons and tag pills, which carry their own colors. */
+.content-body a:not(.btn):not(.tag-pill) {
+    color: var(--sw-gold);
+    text-decoration: underline;
+    text-decoration-color: rgba(254,214,17,0.4);
+}
+.content-body a:not(.btn):not(.tag-pill):hover { color: var(--sw-orange); }
 
 .page-header {
     max-width: 1000px;
