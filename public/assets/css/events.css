@@ -1,105 +1,36 @@
 /* =========================================================
-   Sherwood Events — page-specific styles
-   Builds on brand.css and style.css from the main site.
+   Sherwood Events — page-specific styles ONLY.
+
+   The brand tokens (colors, fonts, shadows) and the shared
+   components (.btn, .btn-gold, .btn-wrap, .content-body,
+   .page-header, .events-placeholder, .section-title, the
+   site footer) all come from the MAIN SITE:
+
+       https://sherwoodadventure.com/css/brand.css
+       https://sherwoodadventure.com/css/style.css
+
+   This file should ONLY contain things that are unique to
+   events.sherwoodadventure.com — event cards, tag filter,
+   admin tables, RSVP form, etc. Anything else belongs in
+   the main site's style.css so it can be shared across
+   schedule.*, signup.*, and any future Sherwood subdomain.
    ========================================================= */
 
-/* -------------- Layout wrappers -------------- */
-.content-body {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem 1.25rem 4rem;
-    color: var(--sw-light);
-}
-.content-body h1,
-.content-body h2,
-.content-body h3 {
-    font-family: var(--sw-font-sub);
-    color: var(--sw-gold);
-    margin-bottom: 0.6rem;
-}
-.content-body h1 { font-size: 2.2rem; }
-.content-body h2 { font-size: 1.55rem; margin-top: 1.8rem; }
-.content-body p  { margin-bottom: 1rem; }
-/* Inline content links — gold underlined, hover to orange.
-   Excludes buttons and tag pills, which carry their own colors. */
-.content-body a:not(.btn):not(.tag-pill) {
-    color: var(--sw-gold);
-    text-decoration: underline;
-    text-decoration-color: rgba(254,214,17,0.4);
-}
-.content-body a:not(.btn):not(.tag-pill):hover { color: var(--sw-orange); }
 
-.page-header {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem 1.25rem 0.5rem;
-    text-align: center;
-}
-.page-header h1 {
-    font-family: var(--sw-font-heading);
-    color: var(--sw-gold);
-    font-size: clamp(2.4rem, 5vw, 3.4rem);
-    margin-bottom: 0.25rem;
-}
-.page-subtitle {
-    color: var(--sw-light);
-    font-family: var(--sw-font-sub);
-    font-style: italic;
-    margin: 0;
+/* =========================================================
+   Small button size modifier — used on event-card action rows.
+   Pairs with main site's .btn / .btn-gold.
+   ========================================================= */
+.btn-sm {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.85rem;
+    border-width: 1.5px;
 }
 
-/* -------------- Buttons (reuse main-site look, add sizes) -------------- */
-.btn {
-    display: inline-block;
-    background: transparent;
-    color: var(--sw-gold);
-    border: 2px solid var(--sw-gold);
-    font-family: var(--sw-font-nav);
-    font-size: 0.95rem;
-    padding: 0.55rem 1.1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.18s, color 0.18s;
-    text-decoration: none !important;
-}
-.btn:hover, .btn:focus-visible {
-    background: var(--sw-gold);
-    color: var(--sw-green-dark);
-    outline: none;
-}
-.btn-gold {
-    background: var(--sw-gold);
-    color: var(--sw-green-dark);
-    border-color: var(--sw-gold);
-}
-.btn-gold:hover, .btn-gold:focus-visible {
-    background: var(--sw-orange);
-    border-color: var(--sw-orange);
-    color: var(--sw-green-dark);
-}
 
-/* ─── Cascade override ──────────────────────────────────────────
-   The main site's style.css has `.content-body a { color: var(--gold) }`
-   at specificity (0,1,1) — same as `.content-body a` on this site, but
-   higher than `.btn` / `.btn-gold` (both at 0,1,0). Re-stating the button
-   rules with `a.btn` / `a.btn-gold` raises them to (0,1,1) too; events.css
-   loads after style.css, so source-order tie-break gives us the win.
-   ─────────────────────────────────────────────────────────────── */
-a.btn, a.btn-gold {
-    text-decoration: none;
-}
-a.btn { color: var(--sw-gold); }
-a.btn:hover, a.btn:focus-visible { color: var(--sw-green-dark); }
-a.btn-gold,
-a.btn-gold:hover,
-a.btn-gold:focus-visible {
-    color: var(--sw-green-dark);
-}
-.btn-sm { font-size: 0.85rem; padding: 0.4rem 0.85rem; border-width: 1.5px; }
-
-.btn-wrap { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
-
-/* -------------- Tag filter + pills -------------- */
+/* =========================================================
+   Tag filter + pills
+   ========================================================= */
 .tag-filter {
     display: flex; flex-wrap: wrap; gap: 0.5rem;
     margin: 0 auto 1.5rem;
@@ -126,7 +57,10 @@ a.btn-gold:focus-visible {
 .tag-pill--sm { padding: 0.15rem 0.6rem; font-size: 0.75rem; }
 .event-tags { display:flex; flex-wrap:wrap; gap: 0.35rem; margin-bottom: 0.5rem; }
 
-/* -------------- Event cards (list view) -------------- */
+
+/* =========================================================
+   Event cards (list view)
+   ========================================================= */
 .month-header {
     font-family: var(--sw-font-sub);
     color: var(--sw-gold);
@@ -192,7 +126,10 @@ a.btn-gold:focus-visible {
     display: flex; flex-wrap: wrap; gap: 0.5rem;
 }
 
-/* -------------- Book-with-us CTA card -------------- */
+
+/* =========================================================
+   "Book with us" CTA card injected into the events list
+   ========================================================= */
 .cta-card {
     grid-template-columns: 1fr;
     background: linear-gradient(135deg, var(--sw-green-dark), var(--sw-brown));
@@ -215,7 +152,10 @@ a.btn-gold:focus-visible {
     .event-card-body { padding: 0 1rem 1rem; }
 }
 
-/* -------------- Past events accordion -------------- */
+
+/* =========================================================
+   Past events accordion
+   ========================================================= */
 .past-events {
     margin-top: 3rem;
     border-top: 1px solid rgba(254,214,17,0.15);
@@ -237,7 +177,10 @@ a.btn-gold:focus-visible {
 .past-events-title { color: var(--sw-light); }
 .past-events-list a:hover .past-events-title { color: var(--sw-gold); }
 
-/* -------------- Subscribe block -------------- */
+
+/* =========================================================
+   Subscribe block (bottom of list page)
+   ========================================================= */
 .subscribe-block {
     margin-top: 3rem;
     text-align: center;
@@ -247,7 +190,10 @@ a.btn-gold:focus-visible {
 }
 .subscribe-block .btn-wrap { justify-content: center; }
 
-/* -------------- Event detail page -------------- */
+
+/* =========================================================
+   Event detail page
+   ========================================================= */
 .event-detail .event-detail-card {
     background: var(--sw-charcoal);
     border-radius: var(--sw-radius);
@@ -301,7 +247,10 @@ a.btn-gold:focus-visible {
 
 .back-link { margin-top: 2rem; }
 
-/* -------------- RSVP form -------------- */
+
+/* =========================================================
+   RSVP form (public) and Admin forms (shared input styling)
+   ========================================================= */
 .rsvp-block {
     background: rgba(70,36,12,0.25);
     border-radius: var(--sw-radius);
@@ -376,7 +325,10 @@ a.btn-gold:focus-visible {
     height: 0; width: 0; overflow: hidden;
 }
 
-/* -------------- Admin -------------- */
+
+/* =========================================================
+   Admin pages — list, edit, RSVPs
+   ========================================================= */
 .admin-header {
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
     align-items: center; margin-bottom: 1rem;
@@ -462,51 +414,6 @@ a.btn-gold:focus-visible {
     margin-bottom: 1rem;
 }
 .flash-success { background: var(--sw-success); color: #fff; }
-.flash-error { background: var(--sw-danger); color: #fff; }
-.form-error { color: var(--sw-danger); }
-
-/* -------------- Placeholder (no events) -------------- */
-.events-placeholder {
-    background: var(--sw-charcoal);
-    border-radius: var(--sw-radius);
-    padding: 2rem;
-    text-align: center;
-    margin-bottom: 2rem;
-}
-.section-title {
-    font-family: var(--sw-font-sub);
-    color: var(--sw-gold);
-    font-size: 1.3rem;
-    margin-bottom: 0.75rem;
-}
-
-/* -------------- Footer (mirror of main site) -------------- */
-.site-footer {
-    background: var(--sw-green-dark);
-    border-top: 4px solid var(--sw-gold);
-    padding: 2rem 1rem;
-    margin-top: 3rem;
-}
-.footer-inner {
-    max-width: 1000px; margin: 0 auto; text-align: center;
-}
-.footer-logo { margin: 0 auto 0.75rem; }
-.footer-contact a { color: var(--sw-gold); text-decoration: none; }
-.footer-social { margin: 0.75rem 0; }
-.footer-social a {
-    color: var(--sw-gold); margin: 0 0.5rem; text-decoration: none;
-    font-family: var(--sw-font-nav);
-}
-.footer-nav {
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1rem;
-    padding: 0.75rem 0;
-    font-size: 0.88rem;
-    font-family: var(--sw-font-nav);
-}
-.footer-nav a { color: var(--sw-light); text-decoration: none; }
-.footer-nav a:hover { color: var(--sw-gold); }
-.footer-copy {
-    color: rgba(223,223,223,0.6);
-    font-size: 0.82rem;
-    margin-top: 0.5rem;
-}
+.flash-error   { background: var(--sw-danger);  color: #fff; }
+.flash-info    { background: var(--sw-info);    color: #fff; }
+.form-error    { color: var(--sw-danger); }
