@@ -77,6 +77,24 @@
     border-color: var(--sw-orange);
     color: var(--sw-green-dark);
 }
+
+/* ─── Cascade override ──────────────────────────────────────────
+   The main site's style.css has `.content-body a { color: var(--gold) }`
+   at specificity (0,1,1) — same as `.content-body a` on this site, but
+   higher than `.btn` / `.btn-gold` (both at 0,1,0). Re-stating the button
+   rules with `a.btn` / `a.btn-gold` raises them to (0,1,1) too; events.css
+   loads after style.css, so source-order tie-break gives us the win.
+   ─────────────────────────────────────────────────────────────── */
+a.btn, a.btn-gold {
+    text-decoration: none;
+}
+a.btn { color: var(--sw-gold); }
+a.btn:hover, a.btn:focus-visible { color: var(--sw-green-dark); }
+a.btn-gold,
+a.btn-gold:hover,
+a.btn-gold:focus-visible {
+    color: var(--sw-green-dark);
+}
 .btn-sm { font-size: 0.85rem; padding: 0.4rem 0.85rem; border-width: 1.5px; }
 
 .btn-wrap { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; }
