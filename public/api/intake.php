@@ -45,13 +45,35 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     exit;
 }
 
+// ── Misconfiguration gate ───────────────────────────────────────────────
+// Refuse to operate if the API key still looks like the placeholder shipped
+// in config.example.php (which is public on GitHub). Surfaces a deployment
+// mistake instead of silently authenticating anyone who knows the placeholder.
+if (!defined('INTAKE_API_KEY')
+    || INTAKE_API_KEY === ''
+    || str_starts_with((string)INTAKE_API_KEY, 'change-me')) {
+    http_response_code(503);
+    error_log('intake.php: INTAKE_API_KEY is missing or still set to the placeholder value');
+    echo json_encode(['error' => 'Intake API not configured on server.']);
+    exit;
+}
+
 // ── Auth: shared API key, constant-time compare ─────────────────────────
 $supplied = $_SERVER['HTTP_X_API_KEY'] ?? '';
 if (!is_string($supplied) || $supplied === ''
-    || !defined('INTAKE_API_KEY')
     || !hash_equals(INTAKE_API_KEY, $supplied)) {
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
+    exit;
+}
+
+// ── Body size cap ───────────────────────────────────────────────────────
+// 64 KB is far above any realistic intake payload (description maxes
+// out at 16 KB); rejecting earlier protects memory under bot abuse.
+$contentLen = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+if ($contentLen > 65536) {
+    http_response_code(413);
+    echo json_encode(['error' => 'Payload too large; 64 KB max.']);
     exit;
 }
 
@@ -95,49 +117,12 @@ if ($errors) {
     exit;
 }
 
-// ── Idempotency: if a row already exists for this intake_ref, return it ──
-$existing = event_find_by_intake_ref($intakeRef);
-if ($existing) {
-    http_response_code(200);
-    echo json_encode([
-        'id'       => (int)$existing['id'],
-        'slug'     => $existing['slug'],
-        'status'   => $existing['status'],
-        'edit_url' => rtrim(SITE_URL, '/') . '/admin/edit.php?id=' . (int)$existing['id'],
-        'message'  => 'A draft already exists for this intake_ref; returning the existing record.',
-    ]);
-    exit;
-}
-
-// ── Insert ──────────────────────────────────────────────────────────────
-$slugFinal = slug_unique(slugify($title));
-
-$payload = [
-    'slug'           => $slugFinal,
-    'title'          => mb_substr($title, 0, 200),
-    'description'    => mb_substr(trim((string)($data['description']   ?? '')), 0, 16000),
-    'start_datetime' => $start,
-    'end_datetime'   => $end !== '' ? $end : null,
-    'all_day'        => 0,
-    'location_name'  => mb_substr(trim((string)($data['location_name'] ?? '')), 0, 200) ?: null,
-    'location_addr'  => mb_substr(trim((string)($data['location_addr'] ?? '')), 0, 300) ?: null,
-    'map_url'        => null,
-    'event_site_url' => null,
-    'ticket_url'     => null,
-    'image_path'     => null,
-    'image_alt'      => null,
-    'status'         => 'draft',                      // intake always lands as draft
-    'featured'       => 0,
-    'rsvp_enabled'   => 0,
-    'rsvp_capacity'  => null,
-];
-
+// ── DB-touching block ───────────────────────────────────────────────────
+// Outer try/catch: any unexpected DB exception (DB unreachable, schema
+// mismatch, etc.) returns a JSON 503 so the calling app can log a
+// structured error instead of an HTML error page.
 try {
-    $newId = event_create_with_intake_ref($payload, $intakeRef);
-} catch (Throwable $ex) {
-    // Defensive: if the UNIQUE index on intake_ref fires due to a race
-    // (two near-simultaneous calls with the same ref), re-fetch and
-    // return the row that won.
+    // Idempotency: if a row already exists for this intake_ref, return it.
     $existing = event_find_by_intake_ref($intakeRef);
     if ($existing) {
         http_response_code(200);
@@ -146,23 +131,69 @@ try {
             'slug'     => $existing['slug'],
             'status'   => $existing['status'],
             'edit_url' => rtrim(SITE_URL, '/') . '/admin/edit.php?id=' . (int)$existing['id'],
-            'message'  => 'Race-resolved: existing draft returned.',
+            'message'  => 'A draft already exists for this intake_ref; returning the existing record.',
         ]);
         exit;
     }
-    error_log('intake.php insert failed: ' . $ex->getMessage());
-    http_response_code(500);
-    echo json_encode(['error' => 'Internal error creating event.']);
+
+    // Insert path.
+    $slugFinal = slug_unique(slugify($title));
+
+    $payload = [
+        'slug'           => $slugFinal,
+        'title'          => mb_substr($title, 0, 200),
+        'description'    => mb_substr(trim((string)($data['description']   ?? '')), 0, 16000),
+        'start_datetime' => $start,
+        'end_datetime'   => $end !== '' ? $end : null,
+        'all_day'        => 0,
+        'location_name'  => mb_substr(trim((string)($data['location_name'] ?? '')), 0, 200) ?: null,
+        'location_addr'  => mb_substr(trim((string)($data['location_addr'] ?? '')), 0, 300) ?: null,
+        'map_url'        => null,
+        'event_site_url' => null,
+        'ticket_url'     => null,
+        'image_path'     => null,
+        'image_alt'      => null,
+        'status'         => 'draft',                      // intake always lands as draft
+        'featured'       => 0,
+        'rsvp_enabled'   => 0,
+        'rsvp_capacity'  => null,
+    ];
+
+    try {
+        $newId = event_create_with_intake_ref($payload, $intakeRef);
+    } catch (Throwable $insertEx) {
+        // Likely cause: UNIQUE intake_ref fired because another concurrent
+        // call beat us. Re-fetch — if found, return that row (race resolved).
+        // If not, this was a different failure (e.g., slug UNIQUE collision)
+        // — re-throw to the outer catch.
+        $existing = event_find_by_intake_ref($intakeRef);
+        if ($existing) {
+            http_response_code(200);
+            echo json_encode([
+                'id'       => (int)$existing['id'],
+                'slug'     => $existing['slug'],
+                'status'   => $existing['status'],
+                'edit_url' => rtrim(SITE_URL, '/') . '/admin/edit.php?id=' . (int)$existing['id'],
+                'message'  => 'Race-resolved: existing draft returned.',
+            ]);
+            exit;
+        }
+        throw $insertEx;
+    }
+
+    http_response_code(201);
+    echo json_encode([
+        'id'       => $newId,
+        'slug'     => $slugFinal,
+        'status'   => 'draft',
+        'edit_url' => rtrim(SITE_URL, '/') . '/admin/edit.php?id=' . $newId,
+    ]);
+} catch (Throwable $ex) {
+    error_log('intake.php DB error: ' . $ex->getMessage());
+    http_response_code(503);   // 503 (not 500) — signals "transient, retry later"
+    echo json_encode(['error' => 'Database unavailable, please retry.']);
     exit;
 }
-
-http_response_code(201);
-echo json_encode([
-    'id'       => $newId,
-    'slug'     => $slugFinal,
-    'status'   => 'draft',
-    'edit_url' => rtrim(SITE_URL, '/') . '/admin/edit.php?id=' . $newId,
-]);
 
 // -----------------------------------------------------------------------
 // Helpers used only by this endpoint
