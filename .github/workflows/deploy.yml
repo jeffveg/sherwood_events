@@ -1,9 +1,17 @@
 name: Deploy to IONOS
 
+# Auto-deploy is intentionally OFF for this project. Jeff prefers to deploy
+# all Sherwood sites together via the shared `bash ~/deploy.sh` batch on the
+# IONOS server after pushing the relevant repos.
+#
+# To re-enable per-push auto-deploy: add the five repo secrets listed in
+# AUTO_DEPLOY.md and change the trigger to:
+#     on:
+#       push:
+#         branches: [main]
+#       workflow_dispatch:
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:   # allow manual runs from the Actions tab
+  workflow_dispatch:   # manual only — run from the Actions tab if needed
 
 # Only one deploy at a time; if a newer push lands while we're running,
 # cancel the older run.
