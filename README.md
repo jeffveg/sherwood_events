@@ -52,6 +52,7 @@ Replaces the `tockify.com` embed previously used on the main site.
 
 - **First-time setup on IONOS:** see [DEPLOY.md](DEPLOY.md)
 - **Auto-deploy on every push to `main`:** see [AUTO_DEPLOY.md](AUTO_DEPLOY.md)
+- **Intake API for external systems:** see [INTAKE.md](INTAKE.md)
 
 ## Project layout
 

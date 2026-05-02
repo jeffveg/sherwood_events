@@ -29,9 +29,11 @@ CREATE TABLE IF NOT EXISTS events (
   rsvp_capacity   INT UNSIGNED NULL,            -- NULL = unlimited
   created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  intake_ref      VARCHAR(60)  NULL,                            -- external booking-system ref (e.g. schedule app's booking_ref); idempotency key for /api/intake.php
   INDEX idx_start (start_datetime),
   INDEX idx_status_start (status, start_datetime),
-  INDEX idx_featured (featured)
+  INDEX idx_featured (featured),
+  UNIQUE INDEX idx_intake_ref (intake_ref)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------

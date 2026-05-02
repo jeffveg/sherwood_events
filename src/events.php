@@ -101,6 +101,37 @@ function event_create(array $data): int
     return (int)db()->lastInsertId();
 }
 
+/**
+ * Insert an event coming in via /api/intake.php, with the originating
+ * system's reference stored in intake_ref (used as the idempotency key).
+ */
+function event_create_with_intake_ref(array $data, string $intakeRef): int
+{
+    $data['intake_ref'] = $intakeRef;
+    $st = db()->prepare("
+        INSERT INTO events
+          (slug, title, description, start_datetime, end_datetime, all_day,
+           location_name, location_addr, map_url, event_site_url, ticket_url,
+           image_path, image_alt, status, featured, rsvp_enabled, rsvp_capacity,
+           intake_ref)
+        VALUES
+          (:slug, :title, :description, :start_datetime, :end_datetime, :all_day,
+           :location_name, :location_addr, :map_url, :event_site_url, :ticket_url,
+           :image_path, :image_alt, :status, :featured, :rsvp_enabled, :rsvp_capacity,
+           :intake_ref)
+    ");
+    $st->execute($data);
+    return (int)db()->lastInsertId();
+}
+
+function event_find_by_intake_ref(string $intakeRef): ?array
+{
+    $st = db()->prepare("SELECT * FROM events WHERE intake_ref = :r LIMIT 1");
+    $st->execute(['r' => $intakeRef]);
+    $row = $st->fetch();
+    return $row ?: null;
+}
+
 function event_update(int $id, array $data): void
 {
     $data['id'] = $id;

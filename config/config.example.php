@@ -27,6 +27,14 @@ const ADMIN_SESSION_MAX_SECONDS   = 43200;    // 12 hour absolute max
 // Generate with: php -r "echo bin2hex(random_bytes(32)).PHP_EOL;"
 const CSRF_SECRET = 'change-me-to-a-long-random-hex-string';
 
+// --- Intake API ---
+// Shared secret used by external systems (e.g. Sherwood_Schedule's
+// booking app) to POST draft events to /api/intake.php.
+// Generate with: openssl rand -hex 32
+// Paste the SAME value into the calling app's config so the X-API-Key
+// header matches.
+const INTAKE_API_KEY = 'change-me-paste-the-same-value-into-schedule-config';
+
 // --- Uploads ---
 const UPLOAD_DIR       = __DIR__ . '/../public/uploads';    // server filesystem
 const UPLOAD_URL_PATH  = '/uploads';                         // URL prefix

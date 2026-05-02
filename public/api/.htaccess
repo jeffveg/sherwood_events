@@ -1,0 +1,11 @@
+# =========================================================
+# /api/ — programmatic endpoints (not a public browsing area)
+# =========================================================
+
+# No directory listing, no humans browsing here
+Options -Indexes
+
+# Tell search engines to skip — defense in depth alongside robots.txt
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
