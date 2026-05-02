@@ -39,6 +39,13 @@ ServerSignature Off
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "strict-origin-when-cross-origin"
     Header set Permissions-Policy "geolocation=(), camera=(), microphone=()"
+
+    # HSTS — instructs browsers that this subdomain is HTTPS-only.
+    # Starting at 1 day (86400) so we can roll back easily if anything
+    # surprises us. Bump to 15552000 (180 days) once we're confident.
+    # Intentionally NOT using includeSubDomains so other Sherwood subdomains
+    # are unaffected.
+    Header always set Strict-Transport-Security "max-age=86400"
 </IfModule>
 
 # --------------------------------------------------------------------

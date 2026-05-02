@@ -88,7 +88,14 @@ if ($event['ticket_url']) {
 
 include __DIR__ . '/_partials/head.php';
 ?>
-<script type="application/ld+json"><?= json_encode(array_filter($jsonLd), JSON_UNESCAPED_SLASHES) ?></script>
+<script type="application/ld+json"><?= json_encode(
+    array_filter($jsonLd),
+    /* Encode flags: escape <, >, &, ', " as \uXXXX so a malicious or
+       smuggled "</script>" inside any string field can't terminate the
+       script tag and inject HTML. Belt-and-suspenders alongside
+       strip_tags() on description. */
+    JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+) ?></script>
 <?php include __DIR__ . '/_partials/nav.php'; ?>
 
 <main class="content-body event-detail" id="main-content">

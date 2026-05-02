@@ -173,6 +173,15 @@ function handle_image_upload(array $file)
         if ($info === false) {
             throw new RuntimeException('Uploaded file is not a valid image.');
         }
+        // Defend against decompression-bomb DoS: GD allocates ~3-4 bytes per
+        // pixel, so a 30000×30000 PNG (only ~1 KB compressed if mostly one
+        // color) would try to allocate gigabytes and OOM the process.
+        // 50 megapixels covers any realistic photo (8K is ~33 MP) and
+        // rejects anything pathological.
+        $pixels = ((int)($info[0] ?? 0)) * ((int)($info[1] ?? 0));
+        if ($pixels > 50_000_000) {
+            throw new RuntimeException('Image dimensions are too large. Please resize the image so it has no more than ~50 megapixels.');
+        }
         $mime = $info['mime'];
         $map = [
             'image/jpeg' => ['ext' => 'jpg', 'read' => 'imagecreatefromjpeg', 'write' => 'imagejpeg', 'q' => 85],

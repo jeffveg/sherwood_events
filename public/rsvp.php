@@ -56,7 +56,7 @@ if ($event['rsvp_capacity'] !== null) {
 }
 
 // Rate limit
-$ipHash = rsvp_ip_hash($_SERVER['REMOTE_ADDR'] ?? '');
+$ipHash = client_ip_hash();
 if (rsvp_rate_limited($ipHash)) {
     http_response_code(429);
     exit('Too many RSVPs from this location. Please wait a bit and try again.');

@@ -39,11 +39,6 @@ function rsvp_create(array $data): int
     return (int)db()->lastInsertId();
 }
 
-function rsvp_ip_hash(?string $ip): string
-{
-    return hash('sha256', ($ip ?? '') . '|' . CSRF_SECRET);
-}
-
 /**
  * Rudimentary rate limiting: no more than 5 RSVPs from the same IP hash
  * in the last 10 minutes.

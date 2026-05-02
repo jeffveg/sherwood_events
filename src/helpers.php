@@ -34,6 +34,27 @@ function csrf_check(): void
     }
 }
 
+/**
+ * Discard the current CSRF token so the next request mints a fresh one.
+ * Called on logout — keeps a leaked token from being reusable across sessions.
+ */
+function csrf_rotate(): void
+{
+    unset($_SESSION['csrf']);
+}
+
+/**
+ * HMAC of the client IP, keyed by CSRF_SECRET. Used for rate-limiting RSVP
+ * submissions and login attempts without storing real IPs in the database.
+ * Stable for a given (IP, secret) pair so rate-limit windows work; opaque
+ * to anyone who reads the DB without the secret.
+ */
+function client_ip_hash(): string
+{
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    return hash_hmac('sha256', $ip, CSRF_SECRET);
+}
+
 // -----------------------------------------------------------------------------
 // Slugify
 // -----------------------------------------------------------------------------
