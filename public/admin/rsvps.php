@@ -1,4 +1,18 @@
 <?php
+/**
+ * Admin RSVP list — /admin/rsvps.php?event=N
+ *                — /admin/rsvps.php?event=N&format=csv  (download)
+ *
+ * Lists every RSVP for one event with name, email (mailto link),
+ * phone, party size, notes, and submitted-at. Linked from the event
+ * row in the admin dashboard.
+ *
+ * CSV export: format=csv adds a UTF-8 BOM (so Excel renders accents)
+ * and runs each cell through csv_safe() to prevent formula-injection
+ * (a name like "=HYPERLINK(...)" would otherwise execute when the
+ * file opens).
+ */
+
 require_once __DIR__ . '/../../src/bootstrap.php';
 require_once __DIR__ . '/../../src/auth.php';
 require_once __DIR__ . '/../../src/events.php';

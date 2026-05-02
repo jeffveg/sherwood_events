@@ -1,4 +1,22 @@
 <?php
+/**
+ * iCalendar feed — events.sherwoodadventure.com/events.ics
+ *
+ * Aggregate calendar feed of all currently-upcoming events, in RFC 5545
+ * format. Uses events_public_upcoming() so the feed always matches the
+ * public list page.
+ *
+ * Subscribers add this URL to Google Calendar / Apple Calendar / Outlook
+ * and their calendar app pulls updates on its own schedule (typically
+ * every few hours). DTSTART/DTEND are emitted in UTC (Z suffix); the
+ * source DATETIMEs are interpreted as Phoenix local per src/db.php.
+ *
+ * Long lines are folded per RFC 5545 via ical_fold(); special chars in
+ * SUMMARY/DESCRIPTION/LOCATION are escaped via ical_escape().
+ *
+ * Pretty URL /events.ics → events.ics.php is set up in public/.htaccess.
+ */
+
 require_once __DIR__ . '/../src/bootstrap.php';
 require_once __DIR__ . '/../src/events.php';
 

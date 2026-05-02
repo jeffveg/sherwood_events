@@ -1,4 +1,18 @@
 <?php
+/**
+ * Admin duplicate — POST /admin/duplicate.php
+ *
+ * Creates a new draft event by copying everything from the source
+ * (title, description, location, image, tags, RSVP settings) and
+ * shifting the start/end +1 week. Lands as status='draft' so admin
+ * can adjust the date or other details before publishing.
+ *
+ * This is the closest thing to a "recurring event" feature — works
+ * fine for "weekly community day" or "next month's tournament" without
+ * a real recurrence engine. For anything more complex, just duplicate
+ * repeatedly and adjust each.
+ */
+
 require_once __DIR__ . '/../../src/bootstrap.php';
 require_once __DIR__ . '/../../src/auth.php';
 require_once __DIR__ . '/../../src/events.php';

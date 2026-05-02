@@ -1,4 +1,20 @@
 <?php
+/**
+ * Admin dashboard — /admin/
+ *
+ * Lists every event (upcoming first, then past) with date, title,
+ * status pill, featured star, RSVP count (linked to /admin/rsvps.php
+ * if any exist), and per-row actions: Edit, Duplicate, Cancel.
+ *
+ * Cancel is a soft-delete (sets status='cancelled', keeps RSVPs).
+ * Duplicate creates a new draft event +1 week with all fields and
+ * tags copied — useful for recurring events without a real recurrence
+ * engine.
+ *
+ * Requires auth. Renders flash messages set by edit.php / delete.php
+ * / duplicate.php after their redirects.
+ */
+
 require_once __DIR__ . '/../../src/bootstrap.php';
 require_once __DIR__ . '/../../src/auth.php';
 require_once __DIR__ . '/../../src/events.php';

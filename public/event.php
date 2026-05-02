@@ -1,4 +1,23 @@
 <?php
+/**
+ * Single event page — events.sherwoodadventure.com/event.php?slug=...
+ *
+ * Renders one event with:
+ *  - Hero image + title + when/where/description
+ *  - Map / event-site / ticket links if set
+ *  - Add-to-Google-Calendar URL + .ics download
+ *  - Social share buttons (Facebook, X, SMS, email)
+ *  - Inline RSVP form when rsvp_enabled=1 and not cancelled
+ *  - JSON-LD <script> for Google rich results (Event schema)
+ *
+ * Cancelled events still render (people may have the URL bookmarked
+ * or in an email) but get a banner AND a noindex meta so Google drops
+ * them from search results.
+ *
+ * Drafts are 404'd by event_find_by_slug() — only published and
+ * cancelled events have public pages.
+ */
+
 require_once __DIR__ . '/../src/bootstrap.php';
 require_once __DIR__ . '/../src/events.php';
 require_once __DIR__ . '/../src/rsvp.php';

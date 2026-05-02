@@ -1,4 +1,15 @@
 <?php
+/**
+ * Dynamic sitemap — events.sherwoodadventure.com/sitemap.xml
+ *
+ * Lists the homepage plus every published event so search engines
+ * (Google, Bing) can discover them. <lastmod> is set from each
+ * event's updated_at so re-edits prompt re-crawl.
+ *
+ * Pretty URL /sitemap.xml → sitemap.xml.php via public/.htaccess.
+ * Referenced by robots.txt with the Sitemap: directive.
+ */
+
 require_once __DIR__ . '/../src/bootstrap.php';
 require_once __DIR__ . '/../src/events.php';
 

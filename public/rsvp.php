@@ -1,4 +1,25 @@
 <?php
+/**
+ * RSVP form POST handler — events.sherwoodadventure.com/rsvp.php
+ *
+ * Receives the form posted from /event.php?slug=...#rsvp. On success,
+ * inserts a row in `rsvps` and redirects back to the event page with
+ * either ?rsvped=1 (new RSVP) or ?already=1 (duplicate email).
+ *
+ * Defenses, in order of evaluation:
+ *   1. CSRF token check
+ *   2. Honeypot field (_gotcha) — bots fill it, humans don't
+ *   3. Time gate — submission < 3 s after page load = bot
+ *   4. PHP-side length caps mirroring DB column widths
+ *   5. Email validation via filter_var
+ *   6. Duplicate-email check (friendly path; not an error)
+ *   7. Capacity check (counts existing party_size sums)
+ *   8. IP rate limit (5 RSVPs / 10 minutes per HMAC'd IP)
+ *
+ * Flash errors set with flash() are rendered on the event page via
+ * _partials/flashes.php.
+ */
+
 require_once __DIR__ . '/../src/bootstrap.php';
 require_once __DIR__ . '/../src/events.php';
 require_once __DIR__ . '/../src/rsvp.php';

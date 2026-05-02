@@ -1,4 +1,16 @@
 <?php
+/**
+ * Single-event .ics download — events.sherwoodadventure.com/event.ics.php?slug=...
+ *
+ * Linked from each event page's "Download .ics" button. Differs from
+ * /events.ics.php (the feed) in that it's a one-shot download for a
+ * specific event with Content-Disposition: attachment so the browser
+ * saves it rather than passing it to the calendar app for subscription.
+ *
+ * Useful for users who want to add a single event to their calendar
+ * without subscribing to the entire feed.
+ */
+
 require_once __DIR__ . '/../src/bootstrap.php';
 require_once __DIR__ . '/../src/events.php';
 

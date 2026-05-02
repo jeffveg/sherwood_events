@@ -1,4 +1,18 @@
 <?php
+/**
+ * Public list view — events.sherwoodadventure.com/
+ *
+ * Pulls upcoming events from the DB (events_public_upcoming), renders
+ * them as cards with month dividers, injects the "Book Your Adventure"
+ * CTA card every 3 non-featured events, and shows a past-events
+ * accordion at the bottom for SEO.
+ *
+ * Optional ?tag=<slug> filters by tag. The tag filter pills above the
+ * cards are populated from the tags table. See ARCHITECTURE.md for the
+ * "upcoming" definition (events with end>=NOW(), or no-end events that
+ * started within the last UPCOMING_GRACE_HOURS hours).
+ */
+
 require_once __DIR__ . '/../src/bootstrap.php';
 require_once __DIR__ . '/../src/events.php';
 require_once __DIR__ . '/../src/rsvp.php';

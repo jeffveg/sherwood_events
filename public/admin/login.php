@@ -1,4 +1,17 @@
 <?php
+/**
+ * Admin login — /admin/login.php
+ *
+ * Single shared password (bcrypt-hashed in config.php as
+ * ADMIN_PASSWORD_HASH). On successful login, regenerates the session
+ * ID (anti-fixation) and redirects to either the originally-requested
+ * admin URL (sanitized in auth_require) or /admin/.
+ *
+ * Brute-force protection: per-IP, in the login_attempts table. Five
+ * failures from one IP-hash in 15 minutes blocks further attempts for
+ * the rest of the window without consulting the password.
+ */
+
 require_once __DIR__ . '/../../src/bootstrap.php';
 require_once __DIR__ . '/../../src/auth.php';
 

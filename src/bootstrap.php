@@ -1,10 +1,26 @@
 <?php
 /**
- * Loaded first by every public entry point.
- * - Loads config
- * - Sets timezone
- * - Starts a secure session
- * - Sets strict error handling in production
+ * bootstrap.php — loaded first by every PHP entry point under public/.
+ *
+ * Responsibilities:
+ *   1. Load config/config.php (DB creds, secrets, paths). Hard-fails
+ *      with a 500 if the file is missing — that's intentional, it's
+ *      the loudest possible signal that the deployment is incomplete.
+ *   2. Set the PHP default timezone to TIMEZONE (America/Phoenix).
+ *      Note: this matters for PHP date/time formatting; the MySQL
+ *      session timezone is set separately in src/db.php.
+ *   3. Configure error visibility — display_errors only on localhost,
+ *      log_errors always. (Production errors land in Apache's PHP log;
+ *      IONOS exposes those in the panel.)
+ *   4. Configure secure session cookies (HttpOnly + Secure + SameSite=Lax)
+ *      and start the session if not already started.
+ *   5. Pull in helpers.php and db.php so they're available everywhere.
+ *
+ * If you add a new entry point under public/, the first two lines
+ * should always be:
+ *
+ *     require_once __DIR__ . '/../src/bootstrap.php';
+ *     require_once __DIR__ . '/../src/<whatever-else-you-need>.php';
  */
 
 declare(strict_types=1);

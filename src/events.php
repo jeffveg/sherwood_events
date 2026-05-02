@@ -2,7 +2,19 @@
 declare(strict_types=1);
 
 /**
- * Event queries. All take a PDO connection implicitly via db().
+ * events.php — query layer for events, tags, and the event↔tag pivot.
+ *
+ * Conventions:
+ *  - All functions take their PDO connection implicitly via db().
+ *  - All queries use prepared statements with named parameters.
+ *  - Functions that fetch return either an associative array (a row
+ *    or list of rows) or null/empty array for not-found.
+ *  - Mutations (event_create, event_update, event_set_tags) throw
+ *    PDOException on DB error — callers decide whether to catch.
+ *
+ * "Public" / "admin" in function names refers to which side of the
+ * app calls them (public-facing pages vs. /admin/), not authorization.
+ * All functions here run with the same DB privileges.
  */
 
 /**

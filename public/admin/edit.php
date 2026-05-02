@@ -1,4 +1,33 @@
 <?php
+/**
+ * Admin event editor — /admin/edit.php  (new event)
+ *                  — /admin/edit.php?id=N  (edit existing)
+ *
+ * The biggest admin page. Handles both create and update via the same
+ * form. POST flow:
+ *   1. CSRF check
+ *   2. Length-clamp every string input (mb_substr) to mirror DB widths
+ *   3. Validate required fields + datetime ordering
+ *   4. Resolve image:
+ *        - if $_FILES['image_file'] present and valid → handle_image_upload()
+ *          (re-encodes through GD; rejects >50 megapixels or non-image MIME)
+ *        - else if image_url provided → store URL as-is
+ *        - else if clear_image checkbox → null out
+ *        - else → keep existing
+ *   5. If validation failed AFTER a successful upload, unlink the
+ *      orphan file so /uploads/ doesn't accumulate dead files.
+ *   6. Slug: auto-generated from title, made unique, or admin-supplied
+ *   7. event_create() / event_update() + event_set_tags()
+ *   8. Flash success and redirect back to ?id=N
+ *
+ * Image upload security:
+ *  - getimagesize MIME whitelist (image/jpeg, png, webp)
+ *  - dimension cap: width × height ≤ 50 megapixels (decompression-bomb DoS)
+ *  - re-encode via GD strips EXIF/embedded payloads
+ *  - random hex filename so admin-supplied names can't be used
+ *  - public/uploads/.htaccess blocks PHP execution as defense-in-depth
+ */
+
 require_once __DIR__ . '/../../src/bootstrap.php';
 require_once __DIR__ . '/../../src/auth.php';
 require_once __DIR__ . '/../../src/events.php';

@@ -1,6 +1,20 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * rsvp.php — query layer for RSVPs.
+ *
+ * Most functions are straightforward CRUD; the interesting one is
+ * rsvp_rate_limited() which gates the public RSVP form. The IP
+ * hashing helper (client_ip_hash) lives in helpers.php since both
+ * RSVPs and admin login use it.
+ *
+ * The rsvps table has columns prepared for paid ticketing
+ * (ticket_tier, amount_cents, payment_status, payment_ref) but
+ * those are currently always NULL/'none'. See ARCHITECTURE.md for
+ * the future-tickets-via-Stripe sketch.
+ */
+
 function rsvp_count(int $eventId): int
 {
     $st = db()->prepare("SELECT COUNT(*) AS c FROM rsvps WHERE event_id = :e AND payment_status <> 'refunded'");

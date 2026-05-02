@@ -1,4 +1,14 @@
 <?php
+/**
+ * RSS 2.0 feed — events.sherwoodadventure.com/events.rss
+ *
+ * RSS-readers and integrations (Zapier, IFTTT) consume this. Mirrors
+ * the public list (events_public_upcoming) so subscribers see exactly
+ * what's on the website. Pretty URL via public/.htaccess.
+ *
+ * <atom:link rel="self"> is included for feed-validator compliance.
+ */
+
 require_once __DIR__ . '/../src/bootstrap.php';
 require_once __DIR__ . '/../src/events.php';
 
