@@ -46,6 +46,10 @@ $pageTitle       = $event['title'] . ' | Sherwood Adventure';
 $pageDescription = short_desc($event['description'], 160);
 $pageCanonical   = $shareUrl;
 $pageImage       = event_image_src($event['image_path']);
+// Tell Google to drop cancelled events from search results — the page
+// still works for visitors who have the URL bookmarked or got it in
+// an email, but we don't want it as an evergreen search hit.
+$pageRobots      = $event['status'] === 'cancelled' ? 'noindex, follow' : 'index, follow';
 
 // JSON-LD
 $jsonLd = [

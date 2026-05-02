@@ -5,9 +5,12 @@
 Options -Indexes
 ServerSignature Off
 
-# Redirect /events.ics and /events.rss to their .php handlers
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Force HTTPS — admin login + RSVP forms must never travel over plain HTTP.
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Trailing-slash-free short URLs
     RewriteRule ^events\.ics$   events.ics.php   [L]

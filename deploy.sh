@@ -29,6 +29,14 @@ cd "$SITE_DIR" || { echo "ERROR: Could not cd to $SITE_DIR"; exit 1; }
 
 echo "--> Pulling latest from GitHub..."
 git fetch --all --prune
+# Make sure we're on main before the hard reset — protects anyone who
+# checked out a feature branch on the server (e.g., to test something)
+# from silently losing their checkout.
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
+if [ "$current_branch" != "main" ]; then
+    echo "--> Switching from '$current_branch' to main..."
+    git checkout main
+fi
 git reset --hard origin/main
 
 echo "--> Setting file permissions..."

@@ -1,9 +1,11 @@
 <?php
-/** Expects: $pageTitle (string), $pageDescription (string), $pageCanonical (?string), $pageImage (?string) */
+/** Expects: $pageTitle (string), $pageDescription (string),
+ *           $pageCanonical (?string), $pageImage (?string), $pageRobots (?string) */
 $pageTitle       = $pageTitle       ?? SITE_NAME;
 $pageDescription = $pageDescription ?? SITE_TAGLINE;
 $pageCanonical   = $pageCanonical   ?? url($_SERVER['REQUEST_URI'] ?? '/');
 $pageImage       = $pageImage       ?? FALLBACK_EVENT_IMAGE;
+$pageRobots      = $pageRobots      ?? 'index, follow';
 ?>
 <!DOCTYPE html>
 <html lang="en-US">
@@ -12,7 +14,7 @@ $pageImage       = $pageImage       ?? FALLBACK_EVENT_IMAGE;
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= e($pageTitle) ?></title>
 <meta name="description" content="<?= e($pageDescription) ?>">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="<?= e($pageRobots) ?>">
 <link rel="canonical" href="<?= e($pageCanonical) ?>">
 <link rel="shortcut icon" type="image/x-icon" href="<?= e(MAIN_SITE_URL) ?>/favicon.ico">
 

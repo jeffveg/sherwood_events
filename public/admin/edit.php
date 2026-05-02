@@ -93,6 +93,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // If validation failed AFTER we already saved a new uploaded file,
+    // delete that file so it doesn't accumulate in /uploads/ as orphan.
+    // (URL-based images aren't local files; only clean up actual uploads.)
+    if ($errors && $uploadHandled && is_string($imagePathDb)
+        && !preg_match('#^https?://#i', $imagePathDb)) {
+        $orphan = UPLOAD_DIR . '/' . $imagePathDb;
+        if (is_file($orphan)) {
+            @unlink($orphan);
+        }
+        // Restore the previous image_path so the form doesn't claim the new one.
+        $imagePathDb = $event['image_path'] ?? null;
+    }
+
     if (!$errors) {
         $data = [
             'slug'           => $slugFinal,

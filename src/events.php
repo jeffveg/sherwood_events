@@ -5,8 +5,24 @@ declare(strict_types=1);
  * Event queries. All take a PDO connection implicitly via db().
  */
 
+/**
+ * "Upcoming" rule, used by both the public list and the iCal feed:
+ *   - has an end_datetime in the future, OR
+ *   - has no end_datetime and started within the last 4 hours
+ *
+ * The 4-hour grace period covers the common "Saturday 6 PM" case where
+ * admin didn't set an end time but the event is actually still happening.
+ * Events with explicit end times are exact.
+ */
+const UPCOMING_GRACE_HOURS = 4;
+
 function events_public_upcoming(?int $tagId = null): array
 {
+    // UPCOMING_GRACE_HOURS is a defined constant (not user input), so it's
+    // safe to inline. INTERVAL X HOUR doesn't accept prepared-statement
+    // placeholders reliably across MariaDB versions.
+    $grace = (int)UPCOMING_GRACE_HOURS;
+
     $sql = "SELECT e.* FROM events e ";
     $params = [];
     if ($tagId) {
@@ -14,7 +30,11 @@ function events_public_upcoming(?int $tagId = null): array
         $params['tag'] = $tagId;
     }
     $sql .= "WHERE e.status = 'published'
-             AND (e.end_datetime >= NOW() OR (e.end_datetime IS NULL AND e.start_datetime >= NOW()))
+             AND (
+                  e.end_datetime >= NOW()
+               OR (e.end_datetime IS NULL
+                   AND e.start_datetime >= NOW() - INTERVAL $grace HOUR)
+             )
              ORDER BY e.featured DESC, e.start_datetime ASC";
 
     $st = db()->prepare($sql);
@@ -102,12 +122,6 @@ function event_delete(int $id): void
 {
     // Soft-delete: mark cancelled, keep RSVPs.
     $st = db()->prepare("UPDATE events SET status='cancelled' WHERE id=:id");
-    $st->execute(['id' => $id]);
-}
-
-function event_hard_delete(int $id): void
-{
-    $st = db()->prepare("DELETE FROM events WHERE id=:id");
     $st->execute(['id' => $id]);
 }
 

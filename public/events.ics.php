@@ -5,12 +5,9 @@ require_once __DIR__ . '/../src/events.php';
 header('Content-Type: text/calendar; charset=utf-8');
 header('Content-Disposition: inline; filename="sherwood-events.ics"');
 
-$events = db()->query("
-    SELECT * FROM events
-    WHERE status = 'published'
-      AND (end_datetime >= NOW() OR (end_datetime IS NULL AND start_datetime >= NOW() - INTERVAL 30 DAY))
-    ORDER BY start_datetime ASC
-")->fetchAll();
+// Use the same "upcoming" rule the public list uses, so calendar
+// subscribers see exactly what's on the website.
+$events = events_public_upcoming();
 
 function ical_escape(string $s): string {
     $s = str_replace(["\\", ",", ";", "\r\n", "\r", "\n"], ["\\\\", "\\,", "\\;", "\\n", "\\n", "\\n"], $s);
