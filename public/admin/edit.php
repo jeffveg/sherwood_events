@@ -22,20 +22,32 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
-    $title    = trim((string)($_POST['title'] ?? ''));
-    $desc     = trim((string)($_POST['description'] ?? ''));
-    $start    = trim((string)($_POST['start_datetime'] ?? ''));
-    $end      = trim((string)($_POST['end_datetime'] ?? ''));
-    $allDay   = !empty($_POST['all_day']) ? 1 : 0;
-    $slug     = trim((string)($_POST['slug'] ?? ''));
-    $status   = in_array(($_POST['status'] ?? ''), ['draft','published','cancelled'], true)
-                ? $_POST['status'] : 'published';
-    $featured = !empty($_POST['featured']) ? 1 : 0;
-    $rsvp_on  = !empty($_POST['rsvp_enabled']) ? 1 : 0;
-    $cap      = $_POST['rsvp_capacity'] === '' ? null : max(0, (int)$_POST['rsvp_capacity']);
+    // PHP-side length caps mirror the DB column widths. Belt-and-suspenders
+    // against (a) compromised admin paste-bombing, (b) accidental clipboard
+    // overflow, (c) PDO throwing 500 on insert if a field exceeds the
+    // schema's cap. mb_substr is multi-byte safe. Description is capped at
+    // 16 KB, well under the TEXT column limit of 65 KB even in the
+    // worst-case 4-byte-per-char scenario.
+    $title        = mb_substr(trim((string)($_POST['title']         ?? '')), 0, 200);
+    $desc         = mb_substr(trim((string)($_POST['description']   ?? '')), 0, 16000);
+    $start        = trim((string)($_POST['start_datetime'] ?? ''));
+    $end          = trim((string)($_POST['end_datetime']   ?? ''));
+    $allDay       = !empty($_POST['all_day']) ? 1 : 0;
+    $slug         = mb_substr(trim((string)($_POST['slug']          ?? '')), 0, 120);
+    $status       = in_array(($_POST['status'] ?? ''), ['draft','published','cancelled'], true)
+                    ? $_POST['status'] : 'published';
+    $featured     = !empty($_POST['featured']) ? 1 : 0;
+    $rsvp_on      = !empty($_POST['rsvp_enabled']) ? 1 : 0;
+    $cap          = $_POST['rsvp_capacity'] === '' ? null : max(0, (int)$_POST['rsvp_capacity']);
 
-    $imageUrl = trim((string)($_POST['image_url'] ?? ''));
-    $imageAlt = trim((string)($_POST['image_alt'] ?? ''));
+    $locationName = mb_substr(trim((string)($_POST['location_name'] ?? '')), 0, 200);
+    $locationAddr = mb_substr(trim((string)($_POST['location_addr'] ?? '')), 0, 300);
+    $mapUrl       = mb_substr(trim((string)($_POST['map_url']       ?? '')), 0, 500);
+    $eventSiteUrl = mb_substr(trim((string)($_POST['event_site_url']?? '')), 0, 500);
+    $ticketUrl    = mb_substr(trim((string)($_POST['ticket_url']    ?? '')), 0, 500);
+
+    $imageUrl     = mb_substr(trim((string)($_POST['image_url']     ?? '')), 0, 500);
+    $imageAlt     = mb_substr(trim((string)($_POST['image_alt']     ?? '')), 0, 200);
 
     // Validate
     if ($title === '')          $errors[] = 'Title is required.';
@@ -114,11 +126,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'start_datetime' => $startDb,
             'end_datetime'   => $endDb,
             'all_day'        => $allDay,
-            'location_name'  => trim((string)($_POST['location_name'] ?? '')) ?: null,
-            'location_addr'  => trim((string)($_POST['location_addr'] ?? '')) ?: null,
-            'map_url'        => trim((string)($_POST['map_url'] ?? '')) ?: null,
-            'event_site_url' => trim((string)($_POST['event_site_url'] ?? '')) ?: null,
-            'ticket_url'     => trim((string)($_POST['ticket_url'] ?? '')) ?: null,
+            'location_name'  => $locationName ?: null,
+            'location_addr'  => $locationAddr ?: null,
+            'map_url'        => $mapUrl       ?: null,
+            'event_site_url' => $eventSiteUrl ?: null,
+            'ticket_url'     => $ticketUrl    ?: null,
             'image_path'     => $imagePathDb,
             'image_alt'      => $imageAlt ?: null,
             'status'         => $status,

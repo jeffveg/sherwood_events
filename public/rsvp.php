@@ -27,11 +27,14 @@ if (!$event || $event['status'] !== 'published' || empty($event['rsvp_enabled'])
     exit('Event not available for RSVP.');
 }
 
-$name  = trim((string)($_POST['name']  ?? ''));
-$email = trim((string)($_POST['email'] ?? ''));
-$phone = trim((string)($_POST['phone'] ?? ''));
+// PHP-side length caps mirror the DB column widths — bots can otherwise
+// POST megabytes of data, which PHP parses into memory before PDO rejects
+// the oversized values. mb_substr is multi-byte safe.
+$name  = mb_substr(trim((string)($_POST['name']  ?? '')), 0, 120);
+$email = mb_substr(trim((string)($_POST['email'] ?? '')), 0, 200);
+$phone = mb_substr(trim((string)($_POST['phone'] ?? '')), 0, 40);
 $party = max(1, min(20, (int)($_POST['party_size'] ?? 1)));
-$notes = trim((string)($_POST['notes'] ?? ''));
+$notes = mb_substr(trim((string)($_POST['notes'] ?? '')), 0, 500);
 
 if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     flash('error', 'Please enter a valid name and email.');
